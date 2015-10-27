@@ -1,6 +1,7 @@
-
 // CardInfDlg.cpp : 实现文件
 //
+
+#define _CRT_SECURE_NO_WARNINGS
 
 #include "stdafx.h"
 #include "CardInf.h"
@@ -69,6 +70,7 @@ BEGIN_MESSAGE_MAP(CCardInfDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_Search_ID, &CCardInfDlg::OnBnClickedSearchId)
 	ON_BN_CLICKED(IDC_getInf, &CCardInfDlg::OnBnClickedgetinf)
+	ON_BN_CLICKED(IDC_read_card, &CCardInfDlg::OnBnClickedreadcard)
 END_MESSAGE_MAP()
 
 
@@ -225,4 +227,76 @@ void CCardInfDlg::OnBnClickedgetinf()
 
 	GetDlgItem(IDC_getInf)->SetWindowTextW(_T("查询完毕"));
 	GetDlgItem(IDC_getInf)->EnableWindow(true);
+}
+
+void CCardInfDlg::OnBnClickedreadcard()
+{
+	//卡序列号缓冲
+	unsigned char myserial[4];
+	unsigned char status;
+	//函数指针声明
+	//unsigned char(__stdcall *ppiccrequest)(unsigned char *serial);
+	//提示当前目录
+	CString FileName = GetProgramCurrentPath();
+	FileName += "OUR_MIFARE.dll";
+	/*if (!FileExists(FileName))
+	{//如果文件不存在
+		ShowMessageb("无法在应用程序的文件夹找到IC卡读写卡器动态库");
+		return; //返回
+	}*/
+
+	typedef unsigned char(__stdcall *ppiccrequest)(unsigned char* serial);
+	HINSTANCE hDLL = LoadLibrary(_T("OUR_MIFARE.dll"));// 加载DLL
+
+	ppiccrequest piccrequest;
+	piccrequest = (ppiccrequest)GetProcAddress(hDLL, "piccrequest");
+
+	//提取动态库
+	//piccrequest = (unsigned char(__stdcall *piccrequest)(unsigned char *serial))GetProcAddress(hDll, "piccread");
+
+
+	status = piccrequest(myserial);
+	//返回值处理
+	//调用读卡函数，如果没有寻到卡返回1，拿卡太快返回2，没注册发卡机返回4，没有驱动程序返回3
+	switch (status)
+	{
+	case '0':
+		{
+			// 获取输入框对象
+			CEdit* edit = (CEdit*)GetDlgItem(IDC_phy_number);
+			CString ID_str;
+			ID_str.Format(_T("%s"), myserial);
+			edit->SetWindowTextW(ID_str);
+			break;
+		}
+	case '1':
+		MessageBox(_T("没有寻找到卡！"));
+		break;
+	case '2':
+		MessageBox(_T("拿卡太快！"));
+		break;
+	case '3':
+		MessageBox(_T("没有驱动程序！"));
+		break;
+	case 4:
+		MessageBox(_T("没注册发卡机！"));
+		break;
+	}
+
+}
+
+CString CCardInfDlg::GetProgramCurrentPath(void)
+{
+	TCHAR path_buffer[_MAX_PATH];
+	TCHAR drive[_MAX_DRIVE];
+	TCHAR dir[_MAX_DIR];
+	TCHAR fname[_MAX_FNAME];
+	TCHAR ext[_MAX_EXT];
+
+	GetModuleFileName(NULL, path_buffer, _MAX_PATH);
+	_wsplitpath_s(path_buffer, drive, dir, fname, ext);
+	CString strDir;
+	strDir += drive;
+	strDir += dir;
+	return strDir;
 }

@@ -34,4 +34,6 @@ protected:
 public:
 	afx_msg void OnBnClickedSearchId();
 	afx_msg void OnBnClickedgetinf();
+	afx_msg void OnBnClickedreadcard();
+	CString GetProgramCurrentPath(void);
 };
