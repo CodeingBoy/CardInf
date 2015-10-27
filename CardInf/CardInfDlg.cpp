@@ -71,6 +71,8 @@ BEGIN_MESSAGE_MAP(CCardInfDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_Search_ID, &CCardInfDlg::OnBnClickedSearchId)
 	ON_BN_CLICKED(IDC_getInf, &CCardInfDlg::OnBnClickedgetinf)
 	ON_BN_CLICKED(IDC_read_card, &CCardInfDlg::OnBnClickedreadcard)
+	ON_BN_CLICKED(IDC_read_card_cycle, &CCardInfDlg::OnBnClickedreadcardcycle)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -262,14 +264,14 @@ void CCardInfDlg::OnBnClickedreadcard()
 	switch (status)
 	{
 	case '0':
-		{
-			// 获取输入框对象
-			CEdit* edit = (CEdit*)GetDlgItem(IDC_phy_number);
-			CString ID_str;
-			ID_str.Format(_T("%s"), myserial);
-			edit->SetWindowTextW(ID_str);
-			break;
-		}
+	{
+		// 获取输入框对象
+		CEdit* edit = (CEdit*)GetDlgItem(IDC_phy_number);
+		CString ID_str;
+		ID_str.Format(_T("%s"), myserial);
+		edit->SetWindowTextW(ID_str);
+		break;
+	}
 	case '1':
 		MessageBox(_T("没有寻找到卡！"));
 		break;
@@ -300,4 +302,82 @@ CString CCardInfDlg::GetProgramCurrentPath(void)
 	strDir += drive;
 	strDir += dir;
 	return strDir;
+}
+
+void CCardInfDlg::OnBnClickedreadcardcycle()
+{
+	CString btntext;
+	GetDlgItem(IDC_read_card_cycle)->GetWindowTextW(btntext);
+	if (btntext == _T("停止循环读卡"))
+	{
+		KillTimer(1);
+		GetDlgItem(IDC_read_card_cycle)->SetWindowTextW(_T("循环读卡"));
+	}else{
+		SetTimer(1, 500, NULL);
+		GetDlgItem(IDC_read_card_cycle)->SetWindowTextW(_T("停止循环读卡"));
+	}
+}
+
+
+
+void CCardInfDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	switch (nIDEvent)
+	{
+	case 1:
+	{
+		//卡序列号缓冲
+		unsigned char myserial[4];
+		unsigned char status;
+		/*if (!FileExists(FileName))
+		{//如果文件不存在
+		ShowMessageb("无法在应用程序的文件夹找到IC卡读写卡器动态库");
+		return; //返回
+		}*/
+
+		typedef unsigned char(__stdcall *ppiccrequest)(unsigned char* serial);
+		HINSTANCE hDLL = LoadLibrary(_T("OUR_MIFARE.dll"));// 加载DLL
+
+		ppiccrequest piccrequest;
+		piccrequest = (ppiccrequest)GetProcAddress(hDLL, "piccrequest");
+
+		//提取动态库
+		//piccrequest = (unsigned char(__stdcall *piccrequest)(unsigned char *serial))GetProcAddress(hDll, "piccread");
+
+		while (true)
+		{
+			status = piccrequest(myserial);
+			//返回值处理
+			//调用读卡函数，如果没有寻到卡返回1，拿卡太快返回2，没注册发卡机返回4，没有驱动程序返回3
+			switch (status)
+			{
+			case '0':
+			{
+				// 获取输入框对象
+				CEdit* edit = (CEdit*)GetDlgItem(IDC_phy_number);
+				CString ID_str;
+				ID_str.Format(_T("%s"), myserial);
+				edit->SetWindowTextW(ID_str);
+				break;
+			}
+			case '1':
+				//MessageBox(_T("没有寻找到卡！"));
+				break;
+			case '2':
+				//MessageBox(_T("拿卡太快！"));
+				break;
+			case '3':
+				//MessageBox(_T("没有驱动程序！"));
+				break;
+			case '4':
+				//MessageBox(_T("没注册发卡机！"));
+				break;
+			}
+		}
+	}
+	default:
+		break;
+	}
+
+	CDialogEx::OnTimer(nIDEvent);
 }

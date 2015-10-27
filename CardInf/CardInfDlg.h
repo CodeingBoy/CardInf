@@ -36,4 +36,6 @@ public:
 	afx_msg void OnBnClickedgetinf();
 	afx_msg void OnBnClickedreadcard();
 	CString GetProgramCurrentPath(void);
+	afx_msg void OnBnClickedreadcardcycle();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };
