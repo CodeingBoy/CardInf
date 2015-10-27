@@ -253,7 +253,7 @@ void CCardInfDlg::OnBnClickedreadcard()
 
 	if (!hDLL)
 	{
-		MessageBox("DLL 没有加载成功！");
+		MessageBox(_T("DLL 没有加载成功！"));
 		return;
 	}
 
