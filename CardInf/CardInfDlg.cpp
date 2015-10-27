@@ -13,8 +13,8 @@
 #define new DEBUG_NEW
 #endif
 
-#define STU_INF_EXCEL "E:/学生卡信息.xls" // 物理卡和学号对应的表格路径
-#define ID_INF_EXCEL "E:/10-261.xls"	// 学生信息表格路径
+#define STU_INF_EXCEL "学生卡信息.xls" // 物理卡和学号对应的表格名称
+#define ID_INF_EXCEL "10-261.xls"	// 学生信息表格名称
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -172,9 +172,12 @@ void CCardInfDlg::OnBnClickedSearchId()
 	CString phy_num_str;
 	edit->GetWindowTextW(phy_num_str);
 
+	CString ExcelLocation = GetProgramCurrentPath();
+	ExcelLocation += STU_INF_EXCEL;
+
 	CExcelUtils phy_inf;
 	phy_inf.InitExcel();
-	phy_inf.OpenExcelFile(_T(STU_INF_EXCEL));
+	phy_inf.OpenExcelFile(ExcelLocation);
 	phy_inf.LoadSheet(1, true);
 	wchar_t *phy_num_wchar = new wchar_t[256];
 	long r;
@@ -202,9 +205,12 @@ void CCardInfDlg::OnBnClickedgetinf()
 	CString ID_str;
 	edit->GetWindowTextW(ID_str);
 
+	CString ExcelLocation = GetProgramCurrentPath();
+	ExcelLocation += ID_INF_EXCEL;
+
 	CExcelUtils Stu_inf;
 	Stu_inf.InitExcel();
-	Stu_inf.OpenExcelFile(_T(ID_INF_EXCEL));
+	Stu_inf.OpenExcelFile(ExcelLocation);
 	Stu_inf.LoadSheet(1, true);
 	wchar_t *student_ID = new wchar_t[256];
 	long r;
@@ -234,11 +240,6 @@ void CCardInfDlg::OnBnClickedreadcard()
 	//卡序列号缓冲
 	unsigned char myserial[4];
 	unsigned char status;
-	//函数指针声明
-	//unsigned char(__stdcall *ppiccrequest)(unsigned char *serial);
-	//提示当前目录
-	CString FileName = GetProgramCurrentPath();
-	FileName += "OUR_MIFARE.dll";
 	/*if (!FileExists(FileName))
 	{//如果文件不存在
 		ShowMessageb("无法在应用程序的文件夹找到IC卡读写卡器动态库");
@@ -278,7 +279,7 @@ void CCardInfDlg::OnBnClickedreadcard()
 	case '3':
 		MessageBox(_T("没有驱动程序！"));
 		break;
-	case 4:
+	case '4':
 		MessageBox(_T("没注册发卡机！"));
 		break;
 	}
