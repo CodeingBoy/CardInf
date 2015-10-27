@@ -251,6 +251,12 @@ void CCardInfDlg::OnBnClickedreadcard()
 	typedef unsigned char(__stdcall *ppiccrequest)(unsigned char* serial);
 	HINSTANCE hDLL = LoadLibrary(_T("OUR_MIFARE.dll"));// 加载DLL
 
+	if (!hDLL)
+	{
+		MessageBox("DLL 没有加载成功！");
+		return;
+	}
+
 	ppiccrequest piccrequest;
 	piccrequest = (ppiccrequest)GetProcAddress(hDLL, "piccrequest");
 
