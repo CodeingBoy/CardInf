@@ -22,12 +22,12 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg();
 
-// 对话框数据
+	// 对话框数据
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
 // 实现
@@ -191,9 +191,11 @@ void CCardInfDlg::OnBnClickedSearchId()
 
 void CCardInfDlg::OnBnClickedgetinf()
 {
+	// 改变按钮文字和状态
 	GetDlgItem(IDC_getInf)->SetWindowTextW(_T("查询中……"));
 	GetDlgItem(IDC_getInf)->EnableWindow(false);
 
+	// 获取输入框对象
 	CEdit* edit = (CEdit*)GetDlgItem(IDC_ID);
 	CString ID_str;
 	edit->GetWindowTextW(ID_str);
@@ -204,7 +206,7 @@ void CCardInfDlg::OnBnClickedgetinf()
 	Stu_inf.LoadSheet(1, true);
 	wchar_t *student_ID = new wchar_t[256];
 	long r;
-	wcscpy_s(student_ID, 256, ID_str);
+	wcscpy_s(student_ID, 256, ID_str); // Cstring->wchar_t
 	if (Stu_inf.FindRow(student_ID, &r, 1)) {
 		CEdit* Name = (CEdit*)GetDlgItem(IDC_Name);
 		CEdit* Sex = (CEdit*)GetDlgItem(IDC_Sex);
