@@ -54,6 +54,9 @@
     <ClInclude Include="IllusionExcelFile.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ExcelUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CardInf.cpp">
@@ -66,6 +69,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="IllusionExcelFile.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcelUtils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
