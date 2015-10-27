@@ -25,10 +25,6 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
-
-// 实现
-protected:
-	DECLARE_MESSAGE_MAP()
 };
 
 CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
@@ -39,9 +35,6 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 }
-
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
-END_MESSAGE_MAP()
 
 
 // CCardInfDlg 对话框
@@ -68,6 +61,8 @@ BEGIN_MESSAGE_MAP(CCardInfDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_read_card, &CCardInfDlg::OnBnClickedreadcard)
 	ON_BN_CLICKED(IDC_read_card_cycle, &CCardInfDlg::OnBnClickedreadcardcycle)
 	ON_WM_TIMER()
+	ON_MESSAGE(WM_UPDATE_ID, &CCardInfDlg::OnUpdateId)
+	ON_MESSAGE(WM_UPDATE_INF, &CCardInfDlg::OnUpdateInf)
 END_MESSAGE_MAP()
 
 
@@ -162,8 +157,8 @@ HCURSOR CCardInfDlg::OnQueryDragIcon()
 
 void CCardInfDlg::OnBnClickedSearchId()
 {
-	GetDlgItem(IDC_Search_ID)->SetWindowTextW(_T("查询中……"));
 	GetDlgItem(IDC_Search_ID)->EnableWindow(false);
+	GetDlgItem(IDC_getInf)->EnableWindow(false);
 
 	CEdit* edit = (CEdit*)GetDlgItem(IDC_phy_number);
 	CString phy_num_str;
@@ -175,13 +170,13 @@ void CCardInfDlg::OnBnClickedSearchId()
 	param.progresspointer = &indicator;
 	pThread = AfxBeginThread(CExcelUtils::SearchCardNumber, (LPVOID)&param);
 
-	SetTimer(2, 300, NULL);
+	SetTimer(2, 50, NULL);
 }
 
 
 void CCardInfDlg::OnBnClickedgetinf()
 {
-	GetDlgItem(IDC_getInf)->SetWindowTextW(_T("查询中……"));
+	GetDlgItem(IDC_Search_ID)->EnableWindow(false);
 	GetDlgItem(IDC_getInf)->EnableWindow(false);
 
 	// 获取输入框对象
@@ -195,7 +190,7 @@ void CCardInfDlg::OnBnClickedgetinf()
 	param_ID.progresspointer = &indicator_ID;
 	pThread_ID = AfxBeginThread(CExcelUtils::SearchInfByID, (LPVOID)&param_ID);
 
-	SetTimer(3, 300, NULL);
+	SetTimer(3, 50, NULL);
 }
 
 void CCardInfDlg::OnBnClickedreadcard()
@@ -348,59 +343,15 @@ void CCardInfDlg::OnTimer(UINT_PTR nIDEvent)
 		CString temp;
 		temp.Format(_T("%d/%d"), indicator, 20512);
 		GetDlgItem(IDC_Search_ID)->SetWindowTextW(temp);
-		if (r > 1) {
-			KillTimer(2);
-
-			CEdit* edit = (CEdit*)GetDlgItem(IDC_ID);
-
-			CString ExcelLocation = CCardInfDlg::GetProgramCurrentPath();
-			ExcelLocation += STU_INF_EXCEL;
-			CExcelUtils phy_inf;
-			phy_inf.InitExcel();
-			phy_inf.OpenExcelFile(ExcelLocation);
-			phy_inf.LoadSheet(1, true);
-			edit->SetWindowTextW(phy_inf.GetCellString(r, 2));
-			phy_inf.CloseExcelFile(false);
-			phy_inf.ReleaseExcel();
-
-			GetDlgItem(IDC_Search_ID)->SetWindowTextW(_T("查询完毕"));
-			GetDlgItem(IDC_Search_ID)->EnableWindow(true);
-		}
+		if (r > 1) KillTimer(2);
+		break;
 	}
 	case 3: {
 		CString temp;
 		temp.Format(_T("%d/%d"), indicator_ID, 20698);
 		GetDlgItem(IDC_getInf)->SetWindowTextW(temp);
-		if (r_ID > 1) {
-			KillTimer(3);
-
-			CEdit* edit = (CEdit*)GetDlgItem(IDC_ID);
-
-			CString ExcelLocation = CCardInfDlg::GetProgramCurrentPath();
-			ExcelLocation += ID_INF_EXCEL;
-			CExcelUtils Stu_inf;
-			Stu_inf.InitExcel();
-			Stu_inf.OpenExcelFile(ExcelLocation);
-			Stu_inf.LoadSheet(1, true);
-
-			CEdit* Name = (CEdit*)GetDlgItem(IDC_Name);
-			CEdit* Sex = (CEdit*)GetDlgItem(IDC_Sex);
-			CEdit* Collage = (CEdit*)GetDlgItem(IDC_Collage);
-			CEdit* Professionals = (CEdit*)GetDlgItem(IDC_Professionals);
-			CEdit* Class = (CEdit*)GetDlgItem(IDC_Class);
-
-			Name->SetWindowTextW(Stu_inf.GetCellString(r, 2));
-			Sex->SetWindowTextW(Stu_inf.GetCellString(r, 3));
-			Collage->SetWindowTextW(Stu_inf.GetCellString(r, 4));
-			Professionals->SetWindowTextW(Stu_inf.GetCellString(r, 5));
-			Class->SetWindowTextW(Stu_inf.GetCellString(r, 6));
-
-			Stu_inf.CloseExcelFile(false);
-			Stu_inf.ReleaseExcel();
-
-			GetDlgItem(IDC_getInf)->SetWindowTextW(_T("查询完毕"));
-			GetDlgItem(IDC_getInf)->EnableWindow(true);
-		}
+		if (r_ID > 1) KillTimer(3);
+		break;
 	}
 	default:
 		break;
@@ -408,4 +359,63 @@ void CCardInfDlg::OnTimer(UINT_PTR nIDEvent)
 
 
 	CDialogEx::OnTimer(nIDEvent);
+}
+
+afx_msg LRESULT CCardInfDlg::OnUpdateId(WPARAM wParam, LPARAM lParam)
+{
+	CEdit* edit = (CEdit*)GetDlgItem(IDC_ID);
+
+	CString ExcelLocation = CCardInfDlg::GetProgramCurrentPath();
+	ExcelLocation += STU_INF_EXCEL;
+	CExcelUtils phy_inf;
+	phy_inf.InitExcel();
+	phy_inf.OpenExcelFile(ExcelLocation);
+	phy_inf.LoadSheet(1, true);
+	edit->SetWindowTextW(phy_inf.GetCellString(r, 2));
+
+	CEdit* Name = (CEdit*)GetDlgItem(IDC_Name);
+	Name->SetWindowTextW(phy_inf.GetCellString(r, 3));
+
+	phy_inf.CloseExcelFile(false);
+	phy_inf.ReleaseExcel();
+
+	GetDlgItem(IDC_Search_ID)->SetWindowTextW(_T("查询完毕"));
+	GetDlgItem(IDC_Search_ID)->EnableWindow(true);
+	GetDlgItem(IDC_getInf)->EnableWindow(true);
+
+	return 0;
+}
+
+
+afx_msg LRESULT CCardInfDlg::OnUpdateInf(WPARAM wParam, LPARAM lParam)
+{
+	CEdit* edit = (CEdit*)GetDlgItem(IDC_ID);
+
+	CString ExcelLocation = CCardInfDlg::GetProgramCurrentPath();
+	ExcelLocation += ID_INF_EXCEL;
+	CExcelUtils Stu_inf;
+	Stu_inf.InitExcel();
+	Stu_inf.OpenExcelFile(ExcelLocation);
+	Stu_inf.LoadSheet(1, true);
+
+	CEdit* Name = (CEdit*)GetDlgItem(IDC_Name);
+	CEdit* Sex = (CEdit*)GetDlgItem(IDC_Sex);
+	CEdit* Collage = (CEdit*)GetDlgItem(IDC_Collage);
+	CEdit* Professionals = (CEdit*)GetDlgItem(IDC_Professionals);
+	CEdit* Class = (CEdit*)GetDlgItem(IDC_Class);
+
+	Name->SetWindowTextW(Stu_inf.GetCellString(r_ID, 2));
+	Sex->SetWindowTextW(Stu_inf.GetCellString(r_ID, 3));
+	Collage->SetWindowTextW(Stu_inf.GetCellString(r_ID, 4));
+	Professionals->SetWindowTextW(Stu_inf.GetCellString(r_ID, 5));
+	Class->SetWindowTextW(Stu_inf.GetCellString(r_ID, 6));
+
+	Stu_inf.CloseExcelFile(false);
+	Stu_inf.ReleaseExcel();
+
+	GetDlgItem(IDC_getInf)->SetWindowTextW(_T("查询完毕"));
+	GetDlgItem(IDC_Search_ID)->EnableWindow(true);
+	GetDlgItem(IDC_getInf)->EnableWindow(true);
+
+	return 0;
 }

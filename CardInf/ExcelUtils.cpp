@@ -89,6 +89,8 @@ UINT CExcelUtils::SearchCardNumber(LPVOID lpParam) {
 	phy_inf.CloseExcelFile(false);
 	phy_inf.ReleaseExcel();
 
+	PostMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_UPDATE_ID, NULL, NULL);
+
 	CoUninitialize();
 
 	return 0;
@@ -115,6 +117,8 @@ UINT CExcelUtils::SearchInfByID(LPVOID lpParam) {
 		rtnval = 1;
 	phy_inf.CloseExcelFile(false);
 	phy_inf.ReleaseExcel();
+
+	PostMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_UPDATE_INF, NULL, NULL);
 
 	CoUninitialize();
 

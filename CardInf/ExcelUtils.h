@@ -4,6 +4,9 @@
 #define STU_INF_EXCEL "学生卡信息.xls" // 物理卡和学号对应的表格名称
 #define ID_INF_EXCEL "10-261.xls"	// 学生信息表格名称
 
+#define WM_UPDATE_ID WM_USER + 700
+#define WM_UPDATE_INF WM_USER + 701
+
 struct Search_param
 {
 	CString CardNumber;

@@ -43,4 +43,7 @@ public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	long r = 0, indicator = 0;
 	long r_ID = 0, indicator_ID = 0;
+protected:
+	afx_msg LRESULT OnUpdateId(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnUpdateInf(WPARAM wParam, LPARAM lParam);
 };
