@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "ExcelUtils.h"
-
+#include "CardInfDlg.h"
 
 CExcelUtils::CExcelUtils()
 {
@@ -52,4 +52,75 @@ bool CExcelUtils::FindRow(wchar_t* KeyWord, long* row, long column) {
 	}
 
 	return false;
+}
+
+bool CExcelUtils::FindRow(wchar_t* KeyWord, long* row, long column, long* indicator) {
+	for (int i = 1; i <= GetRowCount(); i++) {
+		*indicator = i;
+		if (wcscmp(KeyWord, GetCellString(i, column)) == 0)
+		{
+			*row = i;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+UINT CExcelUtils::SearchCardNumber(LPVOID lpParam) {
+	UINT rtnval;
+
+	CoInitialize(NULL);
+	//CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
+	CString ExcelLocation = CCardInfDlg::GetProgramCurrentPath();
+	ExcelLocation += STU_INF_EXCEL;
+
+	CExcelUtils phy_inf;
+	phy_inf.InitExcel();
+	phy_inf.OpenExcelFile(ExcelLocation);
+	phy_inf.LoadSheet(1, true);
+	wchar_t *phy_num_wchar = new wchar_t[256];
+	wcscpy_s(phy_num_wchar, 256, (*((Search_param*)lpParam)).CardNumber);
+	if (phy_inf.FindRow(phy_num_wchar, (*((Search_param*)lpParam)).row, 1, (*((Search_param*)lpParam)).progresspointer))
+		rtnval = 0;
+	else
+		rtnval = 1;
+	phy_inf.CloseExcelFile(false);
+	phy_inf.ReleaseExcel();
+
+	PostMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_UPDATE_ID, NULL, NULL);
+
+	CoUninitialize();
+
+	return 0;
+}
+
+UINT CExcelUtils::SearchInfByID(LPVOID lpParam) {
+	UINT rtnval;
+
+	CoInitialize(NULL);
+	//CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
+	CString ExcelLocation = CCardInfDlg::GetProgramCurrentPath();
+	ExcelLocation += ID_INF_EXCEL;
+
+	CExcelUtils phy_inf;
+	phy_inf.InitExcel();
+	phy_inf.OpenExcelFile(ExcelLocation);
+	phy_inf.LoadSheet(1, true);
+	wchar_t *phy_num_wchar = new wchar_t[256];
+	wcscpy_s(phy_num_wchar, 256, (*((Search_param*)lpParam)).CardNumber);
+	if (phy_inf.FindRow(phy_num_wchar, (*((Search_param*)lpParam)).row, 1, (*((Search_param*)lpParam)).progresspointer))
+		rtnval = 0;
+	else
+		rtnval = 1;
+	phy_inf.CloseExcelFile(false);
+	phy_inf.ReleaseExcel();
+
+	PostMessage(AfxGetMainWnd()->GetSafeHwnd(), WM_UPDATE_INF, NULL, NULL);
+
+	CoUninitialize();
+
+	return 0;
 }
