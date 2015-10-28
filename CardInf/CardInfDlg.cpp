@@ -178,6 +178,7 @@ void CCardInfDlg::OnBnClickedSearchId()
 	CString ExcelLocation = GetProgramCurrentPath();
 	ExcelLocation += STU_INF_EXCEL;
 
+	/*
 	CExcelUtils phy_inf;
 	phy_inf.InitExcel();
 	phy_inf.OpenExcelFile(ExcelLocation);
@@ -190,10 +191,27 @@ void CCardInfDlg::OnBnClickedSearchId()
 		edit->SetWindowTextW(phy_inf.GetCellString(r, 2));
 	}
 	phy_inf.CloseExcelFile(false);
-	phy_inf.ReleaseExcel();
+	phy_inf.ReleaseExcel();*/
+
+	CString SQL_statement;
+	SQL_statement.Format(_T("SELECT * FROM Sheet3 WHERE 物理卡号=\'%s\'"), phy_num_str);
+
+	CSheet3 sheet;
+	sheet.Open(AFX_DB_USE_DEFAULT_TYPE, SQL_statement, CRecordset::readOnly);
+	//sheet.DoFieldExchange();
+	CString ID_str;
+
+	sheet.GetFieldValue((short)0, ID_str);
+
+	CEdit* edit1 = (CEdit*)GetDlgItem(IDC_ID);
+	edit1->SetWindowTextW(ID_str);
+
+	sheet.Close();
 
 	GetDlgItem(IDC_Search_ID)->SetWindowTextW(_T("查询完毕"));
 	GetDlgItem(IDC_Search_ID)->EnableWindow(true);
+
+	OnBnClickedgetinf();
 }
 
 
