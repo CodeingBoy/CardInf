@@ -8,6 +8,7 @@
 #include "CardInfDlg.h"
 #include "afxdialogex.h"
 #include "ExcelUtils.h"
+#include "Sheet3.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -210,7 +211,7 @@ void CCardInfDlg::OnBnClickedgetinf()
 	CString ExcelLocation = GetProgramCurrentPath();
 	ExcelLocation += ID_INF_EXCEL;
 
-	CExcelUtils Stu_inf;
+	/*CExcelUtils Stu_inf;
 	Stu_inf.InitExcel();
 	Stu_inf.OpenExcelFile(ExcelLocation);
 	Stu_inf.LoadSheet(1, true);
@@ -231,7 +232,35 @@ void CCardInfDlg::OnBnClickedgetinf()
 		Class->SetWindowTextW(Stu_inf.GetCellString(r, 6));
 	}
 	Stu_inf.CloseExcelFile(false);
-	Stu_inf.ReleaseExcel();
+	Stu_inf.ReleaseExcel();*/
+
+	CString SQL_statement;
+	SQL_statement.Format(_T("SELECT * FROM Sheet3 WHERE Ñ§ºÅ=\'%s\'"), ID_str);
+	//SQL_statement+="\"";
+	CSheet3 sheet;
+	sheet.Open(AFX_DB_USE_DEFAULT_TYPE, SQL_statement, CRecordset::readOnly);
+	//sheet.DoFieldExchange();
+	CString Name_str, Sex_str, Collage_str, Professionals_str, Class_str;
+
+	sheet.GetFieldValue((short)1, Name_str);
+	sheet.GetFieldValue((short)2, Sex_str);
+	sheet.GetFieldValue((short)3, Collage_str);
+	sheet.GetFieldValue((short)4, Professionals_str);
+	sheet.GetFieldValue((short)5, Class_str);
+
+	CEdit* Name = (CEdit*)GetDlgItem(IDC_Name);
+	CEdit* Sex = (CEdit*)GetDlgItem(IDC_Sex);
+	CEdit* Collage = (CEdit*)GetDlgItem(IDC_Collage);
+	CEdit* Professionals = (CEdit*)GetDlgItem(IDC_Professionals);
+	CEdit* Class = (CEdit*)GetDlgItem(IDC_Class);
+
+	Name->SetWindowTextW(Name_str);
+	Sex->SetWindowTextW(Sex_str);
+	Collage->SetWindowTextW(Collage_str);
+	Professionals->SetWindowTextW(Professionals_str);
+	Class->SetWindowTextW(Class_str);
+
+	sheet.Close();
 
 	GetDlgItem(IDC_getInf)->SetWindowTextW(_T("²éÑ¯Íê±Ï"));
 	GetDlgItem(IDC_getInf)->EnableWindow(true);
