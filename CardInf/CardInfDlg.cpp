@@ -63,6 +63,7 @@ CCardInfDlg::CCardInfDlg(CWnd* pParent /*=NULL*/)
 void CCardInfDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_LIST, m_List);
 }
 
 BEGIN_MESSAGE_MAP(CCardInfDlg, CDialogEx)
@@ -74,6 +75,8 @@ BEGIN_MESSAGE_MAP(CCardInfDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_read_card, &CCardInfDlg::OnBnClickedreadcard)
 	ON_BN_CLICKED(IDC_read_card_cycle, &CCardInfDlg::OnBnClickedreadcardcycle)
 	ON_WM_TIMER()
+	ON_WM_CLOSE()
+	ON_BN_CLICKED(IDC_CLEAR_LIST, &CCardInfDlg::OnBnClickedClearList)
 END_MESSAGE_MAP()
 
 
@@ -108,9 +111,24 @@ BOOL CCardInfDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
-	ShowWindow(SW_MINIMIZE);
+	ShowWindow(SW_SHOW);
+	hDLL = LoadLibrary(_T("OUR_MIFARE.dll"));// 加载DLL
 
-	// TODO: 在此添加额外的初始化代码
+	if (!hDLL)
+	{
+		MessageBox(_T("DLL 没有加载成功！"),_T("加载失败"),MB_ICONERROR);
+		exit(0);
+	}
+
+	piccrequest = (ppiccrequest)GetProcAddress(hDLL, "piccrequest");
+	pcdbeep = (ppcdbeep)GetProcAddress(hDLL, "pcdbeep");
+
+	m_List.InsertColumn(0, _T("学号"), LVCFMT_CENTER, 100);
+	m_List.InsertColumn(1, _T("姓名"), LVCFMT_CENTER, 50);
+	m_List.InsertColumn(2, _T("性别"), LVCFMT_CENTER, 40);
+	m_List.InsertColumn(3, _T("学院"), LVCFMT_CENTER, 100);
+	m_List.InsertColumn(4, _T("专业"), LVCFMT_CENTER, 100);
+	m_List.InsertColumn(5, _T("班级"), LVCFMT_CENTER, 100);
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -254,10 +272,8 @@ void CCardInfDlg::OnBnClickedgetinf()
 
 	CString SQL_statement;
 	SQL_statement.Format(_T("SELECT * FROM Sheet3 WHERE 学号=\'%s\'"), ID_str);
-	//SQL_statement+="\"";
 	CSheet3 sheet;
 	sheet.Open(AFX_DB_USE_DEFAULT_TYPE, SQL_statement, CRecordset::readOnly);
-	//sheet.DoFieldExchange();
 	CString Name_str, Sex_str, Collage_str, Professionals_str, Class_str;
 
 	sheet.GetFieldValue((short)1, Name_str);
@@ -278,6 +294,14 @@ void CCardInfDlg::OnBnClickedgetinf()
 	Professionals->SetWindowTextW(Professionals_str);
 	Class->SetWindowTextW(Class_str);
 
+	int Count = m_List.GetItemCount();
+	m_List.InsertItem(Count, ID_str);
+	m_List.SetItemText(Count, 1, Name_str);
+	m_List.SetItemText(Count, 2, Sex_str);
+	m_List.SetItemText(Count, 3, Collage_str);
+	m_List.SetItemText(Count, 4, Professionals_str);
+	m_List.SetItemText(Count, 5, Class_str);
+
 	sheet.Close();
 
 	GetDlgItem(IDC_getInf)->SetWindowTextW(_T("查询完毕"));
@@ -289,40 +313,30 @@ void CCardInfDlg::OnBnClickedreadcard()
 	//卡序列号缓冲
 	unsigned char myserial[4];
 	unsigned char status;
-	/*if (!FileExists(FileName))
-	{//如果文件不存在
-		ShowMessageb("无法在应用程序的文件夹找到IC卡读写卡器动态库");
-		return; //返回
-	}*/
-
-	typedef unsigned char(__stdcall *ppiccrequest)(unsigned char* serial);
-	HINSTANCE hDLL = LoadLibrary(_T("OUR_MIFARE.dll"));// 加载DLL
-
-	if (!hDLL)
-	{
-		MessageBox(_T("DLL 没有加载成功！"));
-		return;
-	}
-
-	ppiccrequest piccrequest;
-	piccrequest = (ppiccrequest)GetProcAddress(hDLL, "piccrequest");
-
-	//提取动态库
-	//piccrequest = (unsigned char(__stdcall *piccrequest)(unsigned char *serial))GetProcAddress(hDll, "piccread");
-
 
 	status = piccrequest(myserial);
+
+	CString ID_str_last, ID_str;
+	GetDlgItem(IDC_phy_number)->GetWindowTextW(ID_str_last);
+
 	//返回值处理
 	//调用读卡函数，如果没有寻到卡返回1，拿卡太快返回2，没注册发卡机返回4，没有驱动程序返回3
 	switch (status)
 	{
-	case '0':
+	case 0:
 	{
+		double cardNumBer;
+		cardNumBer = myserial[3];
+		cardNumBer = cardNumBer * 256;
+		cardNumBer = cardNumBer + myserial[2];
+		cardNumBer = cardNumBer * 256;
+		cardNumBer = cardNumBer + myserial[1];
+		cardNumBer = cardNumBer * 256;
+		cardNumBer = cardNumBer + myserial[0];
+
 		// 获取输入框对象
-		CEdit* edit = (CEdit*)GetDlgItem(IDC_phy_number);
-		CString ID_str;
-		ID_str.Format(_T("%s"), myserial);
-		edit->SetWindowTextW(ID_str);
+		ID_str.Format(_T("%d"), (int)cardNumBer);
+		GetDlgItem(IDC_phy_number)->SetWindowTextW(ID_str);
 		break;
 	}
 	case '1':
@@ -339,6 +353,10 @@ void CCardInfDlg::OnBnClickedreadcard()
 		break;
 	}
 
+	if (ID_str_last != ID_str && ID_str != "") {
+		pcdbeep(50);
+		OnBnClickedSearchId();
+	}
 }
 
 CString CCardInfDlg::GetProgramCurrentPath(void)
@@ -388,49 +406,61 @@ void CCardInfDlg::OnTimer(UINT_PTR nIDEvent)
 		return; //返回
 		}*/
 
-		typedef unsigned char(__stdcall *ppiccrequest)(unsigned char* serial);
-		HINSTANCE hDLL = LoadLibrary(_T("OUR_MIFARE.dll"));// 加载DLL
+		status = piccrequest(myserial);
 
-		ppiccrequest piccrequest;
-		piccrequest = (ppiccrequest)GetProcAddress(hDLL, "piccrequest");
+		CString ID_str_last, ID_str;
+		GetDlgItem(IDC_phy_number)->GetWindowTextW(ID_str_last);
 
-		//提取动态库
-		//piccrequest = (unsigned char(__stdcall *piccrequest)(unsigned char *serial))GetProcAddress(hDll, "piccread");
-
-		while (true)
+		//返回值处理
+		//调用读卡函数，如果没有寻到卡返回1，拿卡太快返回2，没注册发卡机返回4，没有驱动程序返回3
+		switch (status)
 		{
-			status = piccrequest(myserial);
-			//返回值处理
-			//调用读卡函数，如果没有寻到卡返回1，拿卡太快返回2，没注册发卡机返回4，没有驱动程序返回3
-			switch (status)
-			{
-			case '0':
-			{
-				// 获取输入框对象
-				CEdit* edit = (CEdit*)GetDlgItem(IDC_phy_number);
-				CString ID_str;
-				ID_str.Format(_T("%s"), myserial);
-				edit->SetWindowTextW(ID_str);
-				break;
-			}
-			case '1':
-				//MessageBox(_T("没有寻找到卡！"));
-				break;
-			case '2':
-				//MessageBox(_T("拿卡太快！"));
-				break;
-			case '3':
-				//MessageBox(_T("没有驱动程序！"));
-				break;
-			case '4':
-				//MessageBox(_T("没注册发卡机！"));
-				break;
-			}
+		case 0:
+		{
+			double cardNumBer;
+			cardNumBer = myserial[3];
+			cardNumBer = cardNumBer * 256;
+			cardNumBer = cardNumBer + myserial[2];
+			cardNumBer = cardNumBer * 256;
+			cardNumBer = cardNumBer + myserial[1];
+			cardNumBer = cardNumBer * 256;
+			cardNumBer = cardNumBer + myserial[0];
+
+			if (myserial == NULL)return;
+
+			// 获取输入框对象
+			ID_str.Format(_T("%d"), (int)cardNumBer);
+			GetDlgItem(IDC_phy_number)->SetWindowTextW(ID_str);
+			break;
 		}
+		}
+
+		if (ID_str_last != ID_str && ID_str != "") {
+			pcdbeep(50);
+			OnBnClickedSearchId();
+		}
+
 	}
 	default:
 		break;
 	}
 
 	CDialogEx::OnTimer(nIDEvent);
+}
+
+
+void CCardInfDlg::OnClose()
+{
+	FreeLibrary(hDLL);
+
+	CDialogEx::OnClose();
+}
+
+
+void CCardInfDlg::OnBnClickedClearList()
+{
+	for (int i = m_List.GetItemCount(); i >= 0;i--)
+	{
+		m_List.DeleteItem(i);
+	}
 }
