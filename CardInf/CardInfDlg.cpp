@@ -14,9 +14,6 @@
 #define new DEBUG_NEW
 #endif
 
-#define STU_INF_EXCEL "学生卡信息.xls" // 物理卡和学号对应的表格名称
-#define ID_INF_EXCEL "10-261.xls"	// 学生信息表格名称
-
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
 class CAboutDlg : public CDialogEx
@@ -193,24 +190,6 @@ void CCardInfDlg::OnBnClickedSearchId()
 	CString phy_num_str;
 	edit->GetWindowTextW(phy_num_str);
 
-	CString ExcelLocation = GetProgramCurrentPath();
-	ExcelLocation += STU_INF_EXCEL;
-
-	/*
-	CExcelUtils phy_inf;
-	phy_inf.InitExcel();
-	phy_inf.OpenExcelFile(ExcelLocation);
-	phy_inf.LoadSheet(1, true);
-	wchar_t *phy_num_wchar = new wchar_t[256];
-	long r;
-	wcscpy_s(phy_num_wchar, 256, phy_num_str);
-	if (phy_inf.FindRow(phy_num_wchar, &r, 1)) {
-		CEdit* edit = (CEdit*)GetDlgItem(IDC_ID);
-		edit->SetWindowTextW(phy_inf.GetCellString(r, 2));
-	}
-	phy_inf.CloseExcelFile(false);
-	phy_inf.ReleaseExcel();*/
-
 	CString SQL_statement;
 	SQL_statement.Format(_T("SELECT * FROM Sheet3 WHERE 物理卡号=\'%s\'"), phy_num_str);
 
@@ -243,32 +222,6 @@ void CCardInfDlg::OnBnClickedgetinf()
 	CEdit* edit = (CEdit*)GetDlgItem(IDC_ID);
 	CString ID_str;
 	edit->GetWindowTextW(ID_str);
-
-	CString ExcelLocation = GetProgramCurrentPath();
-	ExcelLocation += ID_INF_EXCEL;
-
-	/*CExcelUtils Stu_inf;
-	Stu_inf.InitExcel();
-	Stu_inf.OpenExcelFile(ExcelLocation);
-	Stu_inf.LoadSheet(1, true);
-	wchar_t *student_ID = new wchar_t[256];
-	long r;
-	wcscpy_s(student_ID, 256, ID_str); // Cstring->wchar_t
-	if (Stu_inf.FindRow(student_ID, &r, 1)) {
-		CEdit* Name = (CEdit*)GetDlgItem(IDC_Name);
-		CEdit* Sex = (CEdit*)GetDlgItem(IDC_Sex);
-		CEdit* Collage = (CEdit*)GetDlgItem(IDC_Collage);
-		CEdit* Professionals = (CEdit*)GetDlgItem(IDC_Professionals);
-		CEdit* Class = (CEdit*)GetDlgItem(IDC_Class);
-
-		Name->SetWindowTextW(Stu_inf.GetCellString(r, 2));
-		Sex->SetWindowTextW(Stu_inf.GetCellString(r, 3));
-		Collage->SetWindowTextW(Stu_inf.GetCellString(r, 4));
-		Professionals->SetWindowTextW(Stu_inf.GetCellString(r, 5));
-		Class->SetWindowTextW(Stu_inf.GetCellString(r, 6));
-	}
-	Stu_inf.CloseExcelFile(false);
-	Stu_inf.ReleaseExcel();*/
 
 	CString SQL_statement;
 	SQL_statement.Format(_T("SELECT * FROM Sheet3 WHERE 学号=\'%s\'"), ID_str);
