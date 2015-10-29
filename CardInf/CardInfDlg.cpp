@@ -292,17 +292,17 @@ void CCardInfDlg::OnBnClickedreadcard()
 		GetDlgItem(IDC_phy_number)->SetWindowTextW(ID_str);
 		break;
 	}
-	case '1':
-		MessageBox(_T("没有寻找到卡！"));
+	case ERR_REQUEST:
+		MessageBox(_T("没有寻找到卡！"), _T("找不到卡片"), MB_ICONERROR);
 		break;
-	case '2':
-		MessageBox(_T("拿卡太快！"));
+	case ERR_NONEDLL:
+		MessageBox(_T("找不到动态库！"), _T("找不到动态库"), MB_ICONERROR);
 		break;
-	case '3':
-		MessageBox(_T("没有驱动程序！"));
+	case ERR_DRIVERNULL:
+		MessageBox(_T("驱动程序没找到或安装错误！"), _T("找不到驱动"), MB_ICONERROR);
 		break;
-	case '4':
-		MessageBox(_T("没注册发卡机！"));
+	default:
+		MessageBox(_T("出现了未知异常！"), _T("找不到驱动"), MB_ICONERROR);
 		break;
 	}
 
@@ -353,24 +353,15 @@ void CCardInfDlg::OnTimer(UINT_PTR nIDEvent)
 		//卡序列号缓冲
 		unsigned char myserial[4];
 		unsigned char status;
-		/*if (!FileExists(FileName))
-		{//如果文件不存在
-		ShowMessageb("无法在应用程序的文件夹找到IC卡读写卡器动态库");
-		return; //返回
-		}*/
 
 		status = piccrequest(myserial);
 
 		CString ID_str_last, ID_str;
 		GetDlgItem(IDC_phy_number)->GetWindowTextW(ID_str_last);
 
-		//返回值处理
-		//调用读卡函数，如果没有寻到卡返回1，拿卡太快返回2，没注册发卡机返回4，没有驱动程序返回3
-		switch (status)
+		if (status == 0)
 		{
-		case 0:
-		{
-			double cardNumBer;
+			int cardNumBer;
 			cardNumBer = myserial[3];
 			cardNumBer = cardNumBer * 256;
 			cardNumBer = cardNumBer + myserial[2];
@@ -379,13 +370,9 @@ void CCardInfDlg::OnTimer(UINT_PTR nIDEvent)
 			cardNumBer = cardNumBer * 256;
 			cardNumBer = cardNumBer + myserial[0];
 
-			if (myserial == NULL)return;
-
 			// 获取输入框对象
-			ID_str.Format(_T("%d"), (int)cardNumBer);
+			ID_str.Format(_T("%d"), cardNumBer);
 			GetDlgItem(IDC_phy_number)->SetWindowTextW(ID_str);
-			break;
-		}
 		}
 
 		if (ID_str_last != ID_str && ID_str != "") {
