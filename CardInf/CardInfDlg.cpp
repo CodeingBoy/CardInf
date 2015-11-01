@@ -361,7 +361,7 @@ void CCardInfDlg::OnTimer(UINT_PTR nIDEvent)
 
 		if (status == 0)
 		{
-			int cardNumBer;
+			double cardNumBer;
 			cardNumBer = myserial[3];
 			cardNumBer = cardNumBer * 256;
 			cardNumBer = cardNumBer + myserial[2];
@@ -371,7 +371,7 @@ void CCardInfDlg::OnTimer(UINT_PTR nIDEvent)
 			cardNumBer = cardNumBer + myserial[0];
 
 			// 获取输入框对象
-			ID_str.Format(_T("%d"), cardNumBer);
+			ID_str.Format(_T("%010.0lf"), cardNumBer);
 			GetDlgItem(IDC_phy_number)->SetWindowTextW(ID_str);
 		}
 
