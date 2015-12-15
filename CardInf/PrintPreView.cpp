@@ -49,33 +49,15 @@ BOOL CPrintPreView::OnInitDialog()
 
 	CRichEditCtrl *edit = (CRichEditCtrl*)GetDlgItem(IDC_RichEdit);
 
-	
-// 	edit->ReplaceSel(_T("华南理工大学广州学院\
-// 		----------------------------------------------------------------------\
-// 		参赛人员名单：\
-// 		序号  	姓名  性别 		学院 		班级\
-// 		1   	黄飞豪  男	计算机工程学院	软件工程4班\
-// 		2\
-// \
-// \
-// \
-// \
-// 		共XX人，其中，男性X人，女性X人，符合____项目比赛人数规定。\
-// 		-------------------------------------------------------------------------- -\
-// 		该组成绩：_____\
-// 		"));
-
 	BuildText();
-
-	
-
-	
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
 }
 
 void CPrintPreView::BuildText() {
+	// TODO:更优的实现及格式
+
 	CHARFORMAT2 title;
 	memset(&title, 0, sizeof(CHARFORMAT2));
 

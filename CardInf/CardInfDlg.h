@@ -57,11 +57,21 @@ public:
 	CString GetProgramCurrentPath(void);
 	afx_msg void OnBnClickedreadcardcycle();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
-//	CListCtrl List;
 	CListCtrl m_List;
 	HINSTANCE hDLL;
 	ppiccrequest piccrequest; 
 	ppcdbeep pcdbeep;
 	afx_msg void OnClose();
 	afx_msg void OnBnClickedClearList();
+	CString CreateNewFile();
+	CFile txt, csv;
+	afx_msg void OnBnClickedNewfile();
+	void Log(CString Content);
+	void WriteCSV(CString Content);
+	afx_msg void OnBnClickedPrintPresee();
+	afx_msg void OnBnClickedPrintPreview();
+
+	Student students[100]; // TODO:用链表实现，以避免溢出
+	int Student_num = 0;
+	Student_Number_Inf StuNum_inf = { 0,0,0 };
 };
