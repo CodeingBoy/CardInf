@@ -30,3 +30,19 @@ public:
 };
 
 extern CCardInfApp theApp;
+
+struct Student
+{
+	CString Name;
+	CString	Sex; // true = male
+	CString Collage;
+	CString Profession;
+	CString Class;
+};
+
+struct Student_Number_Inf
+{
+	int total;
+	int Male;
+	int Female;
+};

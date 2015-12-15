@@ -9,6 +9,7 @@
 #include "afxdialogex.h"
 #include "ExcelUtils.h"
 #include "Sheet3.h"
+#include "PrintPreView.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -55,6 +56,8 @@ CCardInfDlg::CCardInfDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_CARDINF_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	//students = (Student*)malloc(sizeof(Student) * 50);
+	//Student_num = 0;
 }
 
 void CCardInfDlg::DoDataExchange(CDataExchange* pDX)
@@ -74,6 +77,8 @@ BEGIN_MESSAGE_MAP(CCardInfDlg, CDialogEx)
 	ON_WM_TIMER()
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_CLEAR_LIST, &CCardInfDlg::OnBnClickedClearList)
+	ON_BN_CLICKED(IDC_NewFile, &CCardInfDlg::OnBnClickedNewfile)
+	ON_BN_CLICKED(IDC_Print_Preview, &CCardInfDlg::OnBnClickedPrintPreview)
 END_MESSAGE_MAP()
 
 
@@ -113,7 +118,7 @@ BOOL CCardInfDlg::OnInitDialog()
 
 	if (!hDLL)
 	{
-		MessageBox(_T("DLL 没有加载成功！"),_T("加载失败"),MB_ICONERROR);
+		MessageBox(_T("DLL 没有加载成功！"), _T("加载失败"), MB_ICONERROR);
 		exit(0);
 	}
 
@@ -126,6 +131,8 @@ BOOL CCardInfDlg::OnInitDialog()
 	m_List.InsertColumn(3, _T("学院"), LVCFMT_CENTER, 100);
 	m_List.InsertColumn(4, _T("专业"), LVCFMT_CENTER, 100);
 	m_List.InsertColumn(5, _T("班级"), LVCFMT_CENTER, 100);
+
+	OnBnClickedNewfile();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -195,20 +202,44 @@ void CCardInfDlg::OnBnClickedSearchId()
 
 	CSheet3 sheet;
 	sheet.Open(AFX_DB_USE_DEFAULT_TYPE, SQL_statement, CRecordset::readOnly);
-	//sheet.DoFieldExchange();
-	CString ID_str;
 
-	sheet.GetFieldValue((short)0, ID_str);
+	if (sheet.GetRecordCount() < 1) {
+		pcdbeep(500);
+		MessageBox(_T("没有查询到结果！"), _T("产生错误"), MB_ICONERROR);
+		CString out;
+		out.Format(_T("没有查询到结果！物理卡号为：%s"), phy_num_str);
+		Log(out);
+	}
+	else if (sheet.GetRecordCount() > 1) {
+		pcdbeep(500);
+		MessageBox(_T("查询结果不唯一！"), _T("产生错误"), MB_ICONERROR);
+		CString out;
+		out.Format(_T("查询结果不唯一！物理卡号为：%s"), phy_num_str);
+		Log(out);
+	}
+	else {
+		pcdbeep(50);
 
-	CEdit* edit1 = (CEdit*)GetDlgItem(IDC_ID);
-	edit1->SetWindowTextW(ID_str);
+		CString ID_str;
 
+		sheet.GetFieldValue((short)0, ID_str);
+
+		CEdit* edit1 = (CEdit*)GetDlgItem(IDC_ID);
+		edit1->SetWindowTextW(ID_str);
+
+		if (txt.m_hFile != CFile::hFileNull) {
+			CString out;
+			out.Format(_T("查询成功！卡号为：%s"), ID_str);
+			txt.Write(out, out.GetLength()*sizeof(wchar_t));
+			txt.Flush();
+		}
+
+		OnBnClickedgetinf();
+	}
 	sheet.Close();
 
 	GetDlgItem(IDC_Search_ID)->SetWindowTextW(_T("查询完毕"));
 	GetDlgItem(IDC_Search_ID)->EnableWindow(true);
-
-	OnBnClickedgetinf();
 }
 
 
@@ -227,34 +258,83 @@ void CCardInfDlg::OnBnClickedgetinf()
 	SQL_statement.Format(_T("SELECT * FROM Sheet3 WHERE 学号=\'%s\'"), ID_str);
 	CSheet3 sheet;
 	sheet.Open(AFX_DB_USE_DEFAULT_TYPE, SQL_statement, CRecordset::readOnly);
-	CString Name_str, Sex_str, Collage_str, Professionals_str, Class_str;
 
-	sheet.GetFieldValue((short)1, Name_str);
-	sheet.GetFieldValue((short)2, Sex_str);
-	sheet.GetFieldValue((short)3, Collage_str);
-	sheet.GetFieldValue((short)4, Professionals_str);
-	sheet.GetFieldValue((short)5, Class_str);
+	if (sheet.GetRecordCount() < 1) {
+		MessageBox(_T("没有查询到结果！"), _T("产生错误"), MB_ICONERROR);
+		CString out;
+		out.Format(_T("没有查询到结果！学号为：%s"), ID_str);
+		Log(out);
+	}
+	else if (sheet.GetRecordCount() > 1) {
+		MessageBox(_T("查询结果不唯一！"), _T("产生错误"), MB_ICONERROR);
+		CString out;
+		out.Format(_T("查询结果不唯一！学号为：%s"), ID_str);
+		Log(out);
+	}
+	else {
 
-	CEdit* Name = (CEdit*)GetDlgItem(IDC_Name);
-	CEdit* Sex = (CEdit*)GetDlgItem(IDC_Sex);
-	CEdit* Collage = (CEdit*)GetDlgItem(IDC_Collage);
-	CEdit* Professionals = (CEdit*)GetDlgItem(IDC_Professionals);
-	CEdit* Class = (CEdit*)GetDlgItem(IDC_Class);
+		CString Name_str, Sex_str, Collage_str, Professionals_str, Class_str;
 
-	Name->SetWindowTextW(Name_str);
-	Sex->SetWindowTextW(Sex_str);
-	Collage->SetWindowTextW(Collage_str);
-	Professionals->SetWindowTextW(Professionals_str);
-	Class->SetWindowTextW(Class_str);
+		sheet.GetFieldValue((short)1, Name_str);
+		sheet.GetFieldValue((short)2, Sex_str);
+		sheet.GetFieldValue((short)3, Collage_str);
+		sheet.GetFieldValue((short)4, Professionals_str);
+		sheet.GetFieldValue((short)5, Class_str);
 
-	int Count = m_List.GetItemCount();
-	m_List.InsertItem(Count, ID_str);
-	m_List.SetItemText(Count, 1, Name_str);
-	m_List.SetItemText(Count, 2, Sex_str);
-	m_List.SetItemText(Count, 3, Collage_str);
-	m_List.SetItemText(Count, 4, Professionals_str);
-	m_List.SetItemText(Count, 5, Class_str);
+		CEdit* Name = (CEdit*)GetDlgItem(IDC_Name);
+		CEdit* Sex = (CEdit*)GetDlgItem(IDC_Sex);
+		CEdit* Collage = (CEdit*)GetDlgItem(IDC_Collage);
+		CEdit* Professionals = (CEdit*)GetDlgItem(IDC_Professionals);
+		CEdit* Class = (CEdit*)GetDlgItem(IDC_Class);
 
+		Name->SetWindowTextW(Name_str);
+		Sex->SetWindowTextW(Sex_str);
+		Collage->SetWindowTextW(Collage_str);
+		Professionals->SetWindowTextW(Professionals_str);
+		Class->SetWindowTextW(Class_str);
+
+		if (txt.m_hFile != CFile::hFileNull){
+			CString temp,temp2;
+			temp.Format(_T("查询成功。学号：%s 姓名：%s 性别：%s 学院：%s 专业：%s 班级：%s"), ID_str, Name_str, Sex_str, Collage_str, Professionals_str, Class_str);
+			temp2.Format(_T("%s,%s,%s,%s,%s,%s"), ID_str, Name_str, Sex_str, Collage_str, Professionals_str, Class_str);
+			Log(temp);
+			WriteCSV(temp2);
+		}
+
+		int Count = m_List.GetItemCount();
+		m_List.InsertItem(Count, ID_str);
+		m_List.SetItemText(Count, 1, Name_str);
+		m_List.SetItemText(Count, 2, Sex_str);
+		m_List.SetItemText(Count, 3, Collage_str);
+		m_List.SetItemText(Count, 4, Professionals_str);
+		m_List.SetItemText(Count, 5, Class_str);
+
+		students[Student_num].Name = Name_str;
+		students[Student_num].Sex = Sex_str;
+		students[Student_num].Collage = Collage_str;
+		students[Student_num].Profession = Professionals_str;
+		students[Student_num].Class = Class_str;
+		Student_num++;
+
+
+		if (Sex_str == _T("男"))
+		{
+			StuNum_inf.Male++;
+			wchar_t num[5];
+			_itow_s(StuNum_inf.Male, num, 5, 10);
+			GetDlgItem(IDC_Num_Male)->SetWindowTextW(num);
+		}
+		else {
+			StuNum_inf.Female++;
+			wchar_t num[5];
+			_itow_s(StuNum_inf.Female, num, 5, 10);
+			GetDlgItem(IDC_Num_Female)->SetWindowTextW(num);
+		}
+		StuNum_inf.total++;
+		wchar_t num[5];
+		_itow_s(StuNum_inf.total, num, 5, 10);
+		GetDlgItem(IDC_Num_Total)->SetWindowTextW(num);
+	}
 	sheet.Close();
 
 	GetDlgItem(IDC_getInf)->SetWindowTextW(_T("查询完毕"));
@@ -336,7 +416,8 @@ void CCardInfDlg::OnBnClickedreadcardcycle()
 	{
 		KillTimer(1);
 		GetDlgItem(IDC_read_card_cycle)->SetWindowTextW(_T("循环读卡"));
-	}else{
+	}
+	else {
 		SetTimer(1, 500, NULL);
 		GetDlgItem(IDC_read_card_cycle)->SetWindowTextW(_T("停止循环读卡"));
 	}
@@ -376,7 +457,6 @@ void CCardInfDlg::OnTimer(UINT_PTR nIDEvent)
 		}
 
 		if (ID_str_last != ID_str && ID_str != "") {
-			pcdbeep(50);
 			OnBnClickedSearchId();
 		}
 
@@ -399,8 +479,70 @@ void CCardInfDlg::OnClose()
 
 void CCardInfDlg::OnBnClickedClearList()
 {
-	for (int i = m_List.GetItemCount(); i >= 0;i--)
+	for (int i = m_List.GetItemCount(); i >= 0; i--)
 	{
 		m_List.DeleteItem(i);
 	}
+}
+
+CString CCardInfDlg::CreateNewFile() {
+	SYSTEMTIME sys;
+	GetLocalTime(&sys);
+
+	CString path;
+	path.Format(_T("%s%d%d%d-%02d%02d%02d.txt"), GetProgramCurrentPath(), sys.wYear, sys.wMonth, sys.wDay, sys.wHour, sys.wMinute, sys.wSecond);
+	if (!txt.Open(path, CFile::modeCreate | CFile::modeReadWrite))
+		MessageBox(_T("文件打开失败！"), _T("文件打开失败"), MB_ICONERROR);
+	else
+		txt.Write("\xff\xfe", 2);
+
+	CString path2;
+	path2.Format(_T("%s%d%d%d-%02d%02d%02d.csv"), GetProgramCurrentPath(), sys.wYear, sys.wMonth, sys.wDay, sys.wHour, sys.wMinute, sys.wSecond);
+	if (!csv.Open(path2, CFile::modeCreate | CFile::modeReadWrite))
+		MessageBox(_T("文件打开失败！"), _T("文件打开失败"), MB_ICONERROR);
+	else
+		csv.Write("\xff\xfe", 2);
+
+	return path;
+}
+
+
+void CCardInfDlg::OnBnClickedNewfile()
+{
+	if (txt.m_hFile != CFile::hFileNull) {
+		txt.Close();
+	}
+	if (csv.m_hFile != CFile::hFileNull) {
+		csv.Close();
+	}
+	GetDlgItem(IDC_NewFile)->SetWindowText(CreateNewFile());
+}
+
+void CCardInfDlg::Log(CString Content)
+{
+	SYSTEMTIME sys;
+	GetLocalTime(&sys);
+	CString temp;
+	temp.Format(_T("[%d-%d-%d,%02d:%02d:%02d]"), sys.wYear, sys.wMonth, sys.wDay, sys.wHour, sys.wMinute, sys.wSecond);
+	temp += Content;
+	txt.Write(temp, temp.GetLength()*sizeof(wchar_t));
+	txt.Write(_T("\r\n"), 2*sizeof(wchar_t));
+	txt.Flush();
+}
+
+void CCardInfDlg::WriteCSV(CString Content)
+{
+	csv.Write(Content, Content.GetLength()*sizeof(wchar_t));
+	csv.Write(_T("\r\n"), 2 * sizeof(wchar_t));
+	csv.Flush();
+}
+
+
+void CCardInfDlg::OnBnClickedPrintPreview()
+{
+	CString CompetitionName, CompanyName;
+	GetDlgItem(IDC_CompetitionName)->GetWindowTextW(CompetitionName);
+	GetDlgItem(IDC_CompanyName)->GetWindowTextW(CompanyName);
+	CPrintPreView PrintPreviewDlg(students, Student_num, CompetitionName.GetBuffer(), CompanyName.GetBuffer(), StuNum_inf);
+	PrintPreviewDlg.DoModal();
 }

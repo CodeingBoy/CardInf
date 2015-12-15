@@ -203,6 +203,7 @@
     <ClInclude Include="CWorksheets.h" />
     <ClInclude Include="ExcelUtils.h" />
     <ClInclude Include="IllusionExcelFile.h" />
+    <ClInclude Include="PrintPreView.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Sheet3.h" />
     <ClInclude Include="stdafx.h" />
@@ -213,6 +214,7 @@
     <ClCompile Include="CardInfDlg.cpp" />
     <ClCompile Include="ExcelUtils.cpp" />
     <ClCompile Include="IllusionExcelFile.cpp" />
+    <ClCompile Include="PrintPreView.cpp" />
     <ClCompile Include="Sheet3.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

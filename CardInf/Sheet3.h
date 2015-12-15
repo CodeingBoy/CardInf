@@ -37,6 +37,7 @@ public:
 	virtual CString GetDefaultConnect();	// 默认连接字符串
 
 	virtual CString GetDefaultSQL(); 	// 记录集的默认 SQL
+	CString GetProgramCurrentPath(void);
 	virtual void DoFieldExchange(CFieldExchange* pFX);	// RFX 支持
 
 // 实现

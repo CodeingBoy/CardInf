@@ -8,6 +8,8 @@
 
 #include "stdafx.h"
 #include "Sheet3.h"
+#include "CardInf.h"
+
 IMPLEMENT_DYNAMIC(CSheet3, CRecordset)
 
 CSheet3::CSheet3(CDatabase* pdb)
@@ -29,12 +31,30 @@ CSheet3::CSheet3(CDatabase* pdb)
 
 CString CSheet3::GetDefaultConnect()
 {
-	return _T("DBQ=E:\\数据库1.mdb;DefaultDir=E:\\;Driver={Driver do Microsoft Access (*.mdb)};DriverId=25;FIL=MS Access;FILEDSN=E:\\数据库1.mdb.dsn;MaxBufferSize=2048;MaxScanRows=8;PageTimeout=5;SafeTransactions=0;Threads=3;UID=admin;UserCommitSync=Yes;");
+	CString path = GetProgramCurrentPath();
+	return _T("DBQ=") + path + _T("学生数据库.mdb;DefaultDir=") + path + _T(";Driver={Driver do Microsoft Access (*.mdb)};DriverId=25;FIL=MS Access;FILEDSN=")
+		+ path + _T("学生数据库.mdb.dsn;MaxBufferSize=2048;MaxScanRows=8;PageTimeout=5;SafeTransactions=0;Threads=3;UID=admin;UserCommitSync=Yes;");
 }
 
 CString CSheet3::GetDefaultSQL()
 {
 	return _T("[Sheet3]");
+}
+
+CString CSheet3::GetProgramCurrentPath(void)
+{
+	TCHAR path_buffer[_MAX_PATH];
+	TCHAR drive[_MAX_DRIVE];
+	TCHAR dir[_MAX_DIR];
+	TCHAR fname[_MAX_FNAME];
+	TCHAR ext[_MAX_EXT];
+
+	GetModuleFileName(NULL, path_buffer, _MAX_PATH);
+	_wsplitpath_s(path_buffer, drive, dir, fname, ext);
+	CString strDir;
+	strDir += drive;
+	strDir += dir;
+	return strDir;
 }
 
 void CSheet3::DoFieldExchange(CFieldExchange* pFX)

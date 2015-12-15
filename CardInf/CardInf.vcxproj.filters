@@ -60,6 +60,9 @@
     <ClInclude Include="Sheet3.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="PrintPreView.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CardInf.cpp">
@@ -78,6 +81,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Sheet3.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PrintPreView.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
