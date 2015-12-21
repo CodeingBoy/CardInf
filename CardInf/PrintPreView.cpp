@@ -6,16 +6,17 @@
 #include "PrintPreView.h"
 #include "afxdialogex.h"
 #include "CardInfDlg.h"
+#include <list>
 
 // CPrintPreView 对话框
 
 IMPLEMENT_DYNAMIC(CPrintPreView, CDialogEx)
 
-CPrintPreView::CPrintPreView(Student* Students, int Number, wchar_t* Competition_Name, wchar_t* Comapany_Name, Student_Number_Inf num_inf, CWnd* pParent /*=NULL*/)
+CPrintPreView::CPrintPreView(std::list<Student> *StudentsList, int Number, wchar_t* Competition_Name, wchar_t* Comapany_Name, Student_Number_Inf num_inf, CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_DIALOG1, pParent)
 {
 	AfxInitRichEdit2();
-	CPrintPreView::Students = Students;
+	CPrintPreView::StudentsList = StudentsList;
 	CPrintPreView::Number = Number;
 	CPrintPreView::Comapany_Name = Comapany_Name;
 	CPrintPreView::Competition_Name = Competition_Name;
@@ -24,7 +25,7 @@ CPrintPreView::CPrintPreView(Student* Students, int Number, wchar_t* Competition
 
 CPrintPreView::~CPrintPreView()
 {
-	
+
 }
 
 void CPrintPreView::DoDataExchange(CDataExchange* pDX)
@@ -56,103 +57,125 @@ BOOL CPrintPreView::OnInitDialog()
 }
 
 void CPrintPreView::BuildText() {
-	// TODO:更优的实现及格式
 
-	CHARFORMAT2 title;
-	memset(&title, 0, sizeof(CHARFORMAT2));
-
-	title.cbSize = sizeof(CHARFORMAT2);
-	title.dwMask = CFM_BOLD | CFM_COLOR | CFM_FACE | CFM_ITALIC | CFM_UNDERLINE | CFM_SIZE | CFM_STRIKEOUT;
-	title.dwEffects = CFE_BOLD;
-	title.yHeight = 22 * 1440 / 96;
-	title.yOffset = 0;
-	title.crTextColor = RGB(0, 0, 0);
-	title.bCharSet = 0;
-	title.bPitchAndFamily = 0;
-	wcscpy_s(title.szFaceName, _T("黑体"));
-
-	CHARFORMAT2 nornal;
-	memset(&nornal, 0, sizeof(CHARFORMAT2));
-
-	nornal.cbSize = sizeof(CHARFORMAT2);
-	nornal.dwMask = CFM_BOLD | CFM_COLOR | CFM_FACE | CFM_ITALIC | CFM_UNDERLINE | CFM_SIZE | CFM_STRIKEOUT;
-	nornal.dwEffects = CFE_BOLD;
-	nornal.yHeight = 14 * 1440 / 96;
-	nornal.yOffset = 0;
-	nornal.crTextColor = RGB(0, 0, 0);
-	nornal.bCharSet = 0;
-	nornal.bPitchAndFamily = 0;
-	wcscpy_s(nornal.szFaceName, _T("宋体"));
-
-	CHARFORMAT2 students_list;
-	memset(&students_list, 0, sizeof(CHARFORMAT2));
-
-	students_list.cbSize = sizeof(CHARFORMAT2);
-	students_list.dwMask = CFM_BOLD | CFM_COLOR | CFM_FACE | CFM_ITALIC | CFM_UNDERLINE | CFM_SIZE | CFM_STRIKEOUT;
-	students_list.dwEffects = CFE_BOLD;
-	students_list.yHeight = 13 * 1440 / 96;
-	students_list.yOffset = 0;
-	students_list.crTextColor = RGB(0, 0, 0);
-	students_list.bCharSet = 0;
-	students_list.bPitchAndFamily = 0;
-	wcscpy_s(students_list.szFaceName, _T("宋体"));
-	
 	CString temp;
 
-	PARAFORMAT pf;
-	m_Text.GetParaFormat(pf);
-	pf.dwMask = PFM_ALIGNMENT;
-	pf.wAlignment = PFA_CENTER;
-	m_Text.SetParaFormat(pf);
 	//temp.Format(_T("华南理工大学广州学院\r\n2015届校运会 %s项目\r\n%s参赛名单\r\n\n"), Competition_Name, Comapany_Name);
 	temp.Format(_T("华南理工大学广州学院\r\n2015年阳光体育冬季环湖长跑\r\n%s参加名单\r\n\n"), Comapany_Name);
-	
-	m_Text.SetWordCharFormat(title);
-	m_Text.ReplaceSel(temp);
+	Outputf(CF_TITLE, PF_CENTER, temp);
 
-	m_Text.GetParaFormat(pf);
-	pf.dwMask = PFM_ALIGNMENT;
-	pf.wAlignment = PFA_LEFT;
-	m_Text.SetParaFormat(pf);
+	time_t nowtime;
+	nowtime = time(NULL); //获取日历时间  
+	struct tm local;
+	localtime_s(&local, &nowtime);  //获取当前系统时间  
+	wchar_t buf[80];
+	wcsftime(buf, 80, _T("%Y年%m月%d日 %H:%M:%S"), &local);
 
-	m_Text.SetWordCharFormat(nornal);
-	temp.Format(_T("检录时间：%s 组别：%s\r\n打印时间：%s\n----------------------------------------------------------------------\r\n"),
-				_T("2015-12-05 13:31:04"), Comapany_Name, _T("2015-12-05 13:31:16"));
-	m_Text.ReplaceSel(temp);
+	temp.Format(_T("检录时间：%s 组别：%s\r\n----------------------------------------------------------------------\r\n"),
+		buf, Comapany_Name);
+	Outputf(CF_NORMAL, PF_LEFT, temp);
 
-	m_Text.SetWordCharFormat(students_list);
-	temp.Format(_T("%2s %s %s %5s %10s %10s\r\n"), _T("序号"),_T("姓名"), _T("性别"), _T("学院"), _T("专业"), _T("班级"));
-	m_Text.ReplaceSel(temp);
+	temp.Format(_T("%2s %s %s %5s %10s %10s\r\n"), _T("序号"), _T("姓名"), _T("性别"), _T("学院"), _T("专业"), _T("班级"));
+	Outputf(CF_STUINF, PF_LEFT, temp);
 
-	for (int i = 0; i < Number;i++)
+	std::list<Student>::iterator StudentsListIterator;
+
+	int i = 0;
+	for (StudentsListIterator = StudentsList->begin();
+	StudentsListIterator != StudentsList->end();
+		++StudentsListIterator, i++)
 	{
-		temp.Format(_T("%02d %4s %1s %5s %5s %10s\r\n"), i+1,Students[i].Name,Students[i].Sex,Students[i].Collage,Students[i].Profession,Students[i].Class);
-		m_Text.ReplaceSel(temp);
+		temp.Format(_T("%02d %4s %1s %5s %5s %10s\r\n"), i + 1, StudentsListIterator->Name, StudentsListIterator->Sex,
+			StudentsListIterator->Collage, StudentsListIterator->Profession, StudentsListIterator->Class);
+		Outputf(CF_STUINF, PF_LEFT, temp);
 	}
-	
-	m_Text.GetParaFormat(pf);
-	pf.dwMask = PFM_ALIGNMENT;
-	pf.wAlignment = PFA_RIGHT;
-	m_Text.SetParaFormat(pf);
+
 	temp.Format(_T("\r\n共%d人。其中男性%d人，女性%d人。\r\n"), num_inf.total, num_inf.Male, num_inf.Female);
-	m_Text.ReplaceSel(temp);
-	
-	m_Text.SetWordCharFormat(nornal);
+	Outputf(CF_STUINF, PF_RIGHT, temp);
+
 	temp.Format(_T("----------------------------------------------------------------------\r\n"));
-	m_Text.ReplaceSel(temp);
+	Outputf(CF_NORMAL, PF_RIGHT, temp);
+}
+
+void CPrintPreView::Outputf(int style, int alignment, CString text) {
+
+	CHARFORMAT2 cf;
+	memset(&cf, 0, sizeof(CHARFORMAT2));
+	cf.cbSize = sizeof(CHARFORMAT2);
+	cf.dwMask = CFM_BOLD | CFM_COLOR | CFM_FACE | CFM_ITALIC | CFM_UNDERLINE | CFM_SIZE | CFM_STRIKEOUT;
+	cf.dwEffects = CFE_BOLD;
+
+	switch (style)
+	{
+	case CF_TITLE: {
+		cf.yHeight = 22 * 1440 / 96;
+		cf.yOffset = 0;
+		cf.crTextColor = RGB(0, 0, 0);
+		cf.bCharSet = 0;
+		cf.bPitchAndFamily = 0;
+		wcscpy_s(cf.szFaceName, _T("黑体"));
+
+		break;
+	}
+	case CF_STUINF: {
+		cf.yHeight = 13 * 1440 / 96;
+		cf.yOffset = 0;
+		cf.crTextColor = RGB(0, 0, 0);
+		cf.bCharSet = 0;
+		cf.bPitchAndFamily = 0;
+		wcscpy_s(cf.szFaceName, _T("宋体"));
+
+		break;
+	}
+	case CF_NORMAL:
+	default: {
+		cf.yHeight = 14 * 1440 / 96;
+		cf.yOffset = 0;
+		cf.crTextColor = RGB(0, 0, 0);
+		cf.bCharSet = 0;
+		cf.bPitchAndFamily = 0;
+		wcscpy_s(cf.szFaceName, _T("宋体"));
+	}
+
+	}
+
+	PARAFORMAT pf;
+	pf.dwMask = PFM_ALIGNMENT;
+	switch (alignment)
+	{
+	case PF_CENTER:
+		pf.wAlignment = PFA_CENTER;
+		break;
+	case PF_RIGHT:
+		pf.wAlignment = PFA_RIGHT;
+		break;
+	case PF_LEFT:
+	default:
+		pf.wAlignment = PFA_LEFT;
+
+	}
+
+	m_Text.SetWordCharFormat(cf);
+	m_Text.SetParaFormat(pf);
+	m_Text.ReplaceSel(text);
 }
 
 void CPrintPreView::OnBnClickedExport()
 {
 	EDITSTREAM es;
 	CString name;
-	name.Format(_T("%s-%s"), Competition_Name, Comapany_Name);
+	//name.Format(_T("%s-%s"), Competition_Name, Comapany_Name);
+	name.Format(_T("环湖跑-%s"), Comapany_Name);
 	CFile rtf;
 	CreateNewFile(rtf, name);
 	es.dwCookie = (DWORD)&rtf;
 	es.pfnCallback = (EDITSTREAMCALLBACK)MyStreamOutCallback;
 	m_Text.StreamOut(SF_RTF, es);
 	rtf.Close();
+
+	CString temp;
+	temp.Format(_T("已保存到%s.rtf！"), name);
+	MessageBox(temp, NULL, MB_ICONINFORMATION);
 }
 
 static DWORD CALLBACK MyStreamOutCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)

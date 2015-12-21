@@ -79,6 +79,8 @@ BEGIN_MESSAGE_MAP(CCardInfDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CLEAR_LIST, &CCardInfDlg::OnBnClickedClearList)
 	ON_BN_CLICKED(IDC_NewFile, &CCardInfDlg::OnBnClickedNewfile)
 	ON_BN_CLICKED(IDC_Print_Preview, &CCardInfDlg::OnBnClickedPrintPreview)
+	ON_BN_CLICKED(IDC_BUTTON2, &CCardInfDlg::OnBnClickedButton2)
+	ON_WM_CHAR()
 END_MESSAGE_MAP()
 
 
@@ -309,12 +311,21 @@ void CCardInfDlg::OnBnClickedgetinf()
 		m_List.SetItemText(Count, 4, Professionals_str);
 		m_List.SetItemText(Count, 5, Class_str);
 
-		students[Student_num].Name = Name_str;
-		students[Student_num].Sex = Sex_str;
-		students[Student_num].Collage = Collage_str;
-		students[Student_num].Profession = Professionals_str;
-		students[Student_num].Class = Class_str;
-		Student_num++;
+		Student temp;
+		temp.Name = Name_str;
+		temp.Sex = Sex_str;
+		temp.Collage = Collage_str;
+		temp.Profession = Professionals_str;
+		temp.Class = Class_str;
+
+		Student_list.push_back(temp);
+
+// 		students[Student_num].Name = Name_str;
+// 		students[Student_num].Sex = Sex_str;
+// 		students[Student_num].Collage = Collage_str;
+// 		students[Student_num].Profession = Professionals_str;
+// 		students[Student_num].Class = Class_str;
+// 		Student_num++;
 
 
 		if (Sex_str == _T("男"))
@@ -476,13 +487,13 @@ void CCardInfDlg::OnClose()
 	CDialogEx::OnClose();
 }
 
-
 void CCardInfDlg::OnBnClickedClearList()
 {
 	for (int i = m_List.GetItemCount(); i >= 0; i--)
-	{
 		m_List.DeleteItem(i);
-	}
+
+	Student_list.clear();
+	StuNum_inf = { 0,0,0 };
 }
 
 CString CCardInfDlg::CreateNewFile() {
@@ -543,6 +554,41 @@ void CCardInfDlg::OnBnClickedPrintPreview()
 	CString CompetitionName, CompanyName;
 	GetDlgItem(IDC_CompetitionName)->GetWindowTextW(CompetitionName);
 	GetDlgItem(IDC_CompanyName)->GetWindowTextW(CompanyName);
-	CPrintPreView PrintPreviewDlg(students, Student_num, CompetitionName.GetBuffer(), CompanyName.GetBuffer(), StuNum_inf);
+	CPrintPreView PrintPreviewDlg(&Student_list, Student_num, CompetitionName.GetBuffer(), CompanyName.GetBuffer(), StuNum_inf);
 	PrintPreviewDlg.DoModal();
+}
+
+
+void CCardInfDlg::OnBnClickedButton2()
+{
+#ifdef _DEBUG
+	for (int i = 0; i < 100; i++)
+	{
+		// 获取输入框对象
+		CEdit* edit = (CEdit*)GetDlgItem(IDC_ID);
+		CString ID_str;
+		double temp = 201510098016;
+		ID_str.Format(_T("%.0lf"), temp + i);
+		edit->SetWindowTextW(ID_str);
+		OnBnClickedgetinf();
+	}
+#endif
+
+}
+
+
+BOOL CCardInfDlg::PreTranslateMessage(MSG* pMsg)
+{
+	if (WM_KEYDOWN == pMsg->message)
+	{
+		CEdit* pEdit = (CEdit*)GetDlgItem(IDC_ID);
+		ASSERT(pEdit);
+		if (pMsg->hwnd == pEdit->GetSafeHwnd() && VK_RETURN == pMsg->wParam)
+		{
+			OnBnClickedgetinf();
+			return TRUE;
+		}
+	}
+
+	return CDialogEx::PreTranslateMessage(pMsg);
 }

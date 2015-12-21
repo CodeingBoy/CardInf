@@ -4,6 +4,8 @@
 
 #pragma once
 #include "afxcmn.h"
+#include <list>
+#include <algorithm>
 
 #define ERR_REQUEST 8//寻卡错误
 #define ERR_READSERIAL 9//读序列吗错误
@@ -68,10 +70,11 @@ public:
 	afx_msg void OnBnClickedNewfile();
 	void Log(CString Content);
 	void WriteCSV(CString Content);
-	afx_msg void OnBnClickedPrintPresee();
 	afx_msg void OnBnClickedPrintPreview();
-
-	Student students[100]; // TODO:用链表实现，以避免溢出
+	//Student students[100];
 	int Student_num = 0;
 	Student_Number_Inf StuNum_inf = { 0,0,0 };
+	std::list<Student> Student_list;
+	afx_msg void OnBnClickedButton2();
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 };

@@ -194,3 +194,8 @@ FakesAssemblies/
 
 # Visual Studio 6 workspace options file
 *.opt
+
+*.xls
+数据库1.mdb
+*.dsn
+CardInf.VC.opendb
