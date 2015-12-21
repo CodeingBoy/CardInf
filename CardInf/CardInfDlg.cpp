@@ -494,6 +494,9 @@ void CCardInfDlg::OnBnClickedClearList()
 
 	Student_list.clear();
 	StuNum_inf = { 0,0,0 };
+	GetDlgItem(IDC_Num_Male)->SetWindowTextW(_T("0"));
+	GetDlgItem(IDC_Num_Female)->SetWindowTextW(_T("0"));
+	GetDlgItem(IDC_Num_Total)->SetWindowTextW(_T("0"));
 }
 
 CString CCardInfDlg::CreateNewFile() {
